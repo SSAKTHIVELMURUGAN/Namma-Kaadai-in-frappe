@@ -20,6 +20,7 @@
    "in_list_view": 1,
    "label": "Shop Name",
    "options": "Shop",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -27,6 +28,7 @@
    "fieldtype": "Date",
    "in_list_view": 1,
    "label": "Date",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -35,6 +37,7 @@
    "in_list_view": 1,
    "label": "Voucher Type",
    "options": "DocType",
+   "read_only": 1,
    "reqd": 1
   },
   {
@@ -43,24 +46,27 @@
    "in_list_view": 1,
    "label": "Voucher ",
    "options": "transaction_id",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "fieldname": "total",
    "fieldtype": "Currency",
    "label": "Total",
+   "read_only": 1,
    "reqd": 1
   },
   {
    "default": "0",
    "fieldname": "iscancelled",
    "fieldtype": "Check",
-   "label": "IsCancelled"
+   "label": "IsCancelled",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-12-17 18:41:56.722995",
+ "modified": "2024-12-26 10:00:31.350840",
  "modified_by": "Administrator",
  "module": "Namma Kadai",
  "name": "Shop CashFlow",

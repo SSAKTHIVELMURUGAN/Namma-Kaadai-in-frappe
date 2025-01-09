@@ -50,7 +50,7 @@ def get_transactions(filters):
     if item_name:
         filter_conditions["item_name"] = item_name
 
-    transactions = frappe.get_list("Transaction", filters=filter_conditions, fields=["item_name", "quantity", "status"])
+    transactions = frappe.get_list("Transaction", filters=filter_conditions, fields=["item_name","shop_name", "quantity", "status"])
 
     item_qty = {}
 

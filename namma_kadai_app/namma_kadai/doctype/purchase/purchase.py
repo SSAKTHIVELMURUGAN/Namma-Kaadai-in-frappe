@@ -3,6 +3,7 @@
 
 import frappe
 from frappe.model.document import Document
+from pypika import functions as fn
 
 class Purchase(Document):
     def validate(self):
@@ -17,8 +18,6 @@ class Purchase(Document):
         # in shop cash flow doctype -- to track cash flow
         self.shop_cash_flow_doc_type()
 
-    
-
     def total_amount(self):
         self.total = 0
         for row in self.item_list:
@@ -26,15 +25,22 @@ class Purchase(Document):
             self.total += row.amount
 
     def calculate_all_purchase_amount(self):
-        totals_dict = frappe.db.sql("""
-        SELECT 
-        SUM(total) AS investment_amount_tab
-        FROM `tabShop CashFlow`
-        WHERE shop_name = %s
-        """, (self.shop_name,), as_dict=True)
+        # totals_dict = frappe.db.sql("""
+        # SELECT 
+        # SUM(total) AS investment_amount_tab
+        # FROM `tabShop CashFlow`
+        # WHERE shop_name = %s
+        # """, (self.shop_name,), as_dict=True)
 
-        if totals_dict:
-            for totals_dict_value in totals_dict:
+        totals_dict_shop_cashflow = frappe.qb.DocType('Shop CashFlow')
+        totals_dict = (
+            frappe.qb.from_(totals_dict_shop_cashflow)
+            .select(fn.Sum(totals_dict_shop_cashflow.total).as_("investment_amount_tab"))
+            .where(totals_dict_shop_cashflow.shop_name == self.shop_name)
+        ).run(as_dict=True)
+
+        if totals_dict: 
+            for totals_dict_value in totals_dict: 
                 investment_amount = totals_dict_value.get('investment_amount_tab',0) or 0
                 # sale_amount = totals_dict_value.get('sale_amount_tab',0)
         # investment_amount *= -1
@@ -68,3 +74,21 @@ class Purchase(Document):
         shop_cashflow.transaction_type = self.name
         shop_cashflow.total = self.total * -1
         shop_cashflow.insert()
+    
+    def on_cancel(self):
+        transaction_list = frappe.get_list('Transaction',
+        filters={'id': self.name},
+        fields=['name','is_cancel'])
+        print(self.name)
+        for transaction in transaction_list:
+            transaction_doc = frappe.get_doc('Transaction',transaction['name'])
+            transaction_doc.is_cancel = 1
+            transaction_doc.save()
+
+        cash_flows = frappe.get_list('Shop CashFlow',
+        filters={'transaction_type': self.name},  
+        fields=['name','iscancelled'])
+        for cash_flow in cash_flows:
+            cash_flow_doc = frappe.get_doc('Shop CashFlow', cash_flow['name'])
+            cash_flow_doc.iscancelled = 1
+            cash_flow_doc.save()

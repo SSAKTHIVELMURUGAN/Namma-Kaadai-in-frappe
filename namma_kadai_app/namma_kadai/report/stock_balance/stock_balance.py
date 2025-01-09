@@ -60,6 +60,7 @@ def get_stock_balance(filters):
     item_name_filter = filters.get("item_name")
 
     # purchase and sale transactions from transaction
+    # get_all will always store the data in list contains multi-dict [{},{},{}]
     transaction_details = frappe.get_all(
         "Transaction",
         filters={

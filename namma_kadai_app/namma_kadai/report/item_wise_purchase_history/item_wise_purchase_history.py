@@ -3,7 +3,6 @@
 
 import frappe
 
-
 def execute(filters=None):
     frappe.errprint(filters)
     columns = [
@@ -55,14 +54,28 @@ def execute(filters=None):
 
 
 def get_data(filters):
-    sql = "SELECT purchase.date, purchase.shop_name, purchase.suppiler_name, item.item_name, item.rate, item.quantity, item.amount FROM `tabPurchase` AS purchase INNER JOIN `tabItem` AS item ON purchase.name = item.parent WHERE purchase.docstatus=1"
+    purchase = frappe.qb.DocType("Purchase")
+    item = frappe.qb.DocType("Item")
+
+    q = (
+         frappe.qb.from_(purchase)
+         .select(purchase.date, purchase.shop_name, purchase.suppiler_name, item.item_name, item.rate, item.quantity, item.amount)
+         .inner_join(item)
+         .on(purchase.name == item.parent)
+         .where(purchase.docstatus==1)
+        )
+
+    # sql = "SELECT purchase.date, purchase.shop_name, purchase.suppiler_name, item.item_name, item.rate, item.quantity, item.amount FROM `tabPurchase` AS purchase INNER JOIN `tabItem` AS item ON purchase.name = item.parent WHERE purchase.docstatus=1"
     
     if filters.get("date"):
-        sql += " AND purchase.date = %(date)s"
+        q = q.where(purchase.date == filters["date"])
+        # sql += " AND purchase.date = %(date)s"
     if filters.get("shop_name"):
-        sql += " AND purchase.shop_name = %(shop_name)s"
+        q = q.where(purchase.shop_name == filters['shop_name'])
+        # sql += " AND purchase.shop_name = %(shop_name)s"
     if filters.get("item_name"):
-        sql += " AND item.item_name = %(item_name)s"
-        
-    return frappe.db.sql(sql, filters, as_dict=True)
-
+        q = q.where(item.item_name == filters['item_name'])
+        # sql += " AND item.item_name = %(item_name)s"
+    result = q.run(as_dict = True)
+    # return frappe.db.sql(sql, filters, as_dict=True)
+    return result
